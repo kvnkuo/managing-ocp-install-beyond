@@ -71,6 +71,7 @@ aws_instances:
     node_labels:
       type: infra
       zone: default
+      openshift-infra: apiserver
   groups:
     - masters
     - osev3
