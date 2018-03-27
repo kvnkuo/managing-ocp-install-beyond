@@ -9,7 +9,7 @@ openshift_master_identity_providers:
   kind: HTPasswdPasswordIdentityProvider
   filename: /etc/origin/master/htpasswd
 openshift_master_htpasswd_users:
-  {{ student_id }}: $apr1$5/tyREyX$faNZX.wbId4LGDkNYxJQZ0
+  {{ student_id }}: $apr1$dxclpIY6$IDo1jwwuu4/6DPL0TNaUw.
 openshift_master_image_policy_config:
   maxImagesBulkImportedPerRepository: 100
 openshift_hosted_metrics_deploy: yes
@@ -27,8 +27,8 @@ openshift_metrics_cassandra_storage_type: dynamic
 openshift_disable_check: memory_availability
 openshift_enable_service_catalog: true
 {% raw %}
-openshift_cloudprovider_aws_access_key: "{{ lookup('env','AWS_ACCESS_KEY') }}"
-openshift_cloudprovider_aws_secret_key: "{{ lookup('env','AWS_SECRET_KEY') }}"
+openshift_cloudprovider_aws_access_key: "{{ lookup('env','AWS_ACCESS_KEY_ID') }}"
+openshift_cloudprovider_aws_secret_key: "{{ lookup('env','AWS_SECRET_ACCESS_KEY') }}"
 openshift_node_labels: "{{ ec2_tag_node_labels }}"
 {% endraw %}
 

@@ -1,4 +1,33 @@
-=== Expanding the OpenShift Container Platform Cluster
+= Lab 6 - Expanding the OpenShift Container Platform Cluster
+
+== Connectivity Details for This Lab
+
+[options="header"]
+|======================
+| *Item* | *URL* | *Access*
+| Ansible Tower|
+link:https://tower-<student_id>.labs.sysdeseng.com[https://tower-<student_id>.labs.sysdeseng.com] |
+Username: <student_id> +
+Password: INSTRUCTOR WILL PROVIDE
+| OpenShift Container Platform |
+link:https://:master-<student_id>.labs.sysdeseng.com:8443[https://master-<student_id>.labs.sysdeseng.com:8443] |
+Username: <student_id> +
+Password: INSTRUCTOR WILL PROVIDE
+| Red Hat CloudForms |
+link:https://cloudforms-cloudforms.apps-<student_id>.labs.sysdeseng.com[https://cloudforms-cloudforms.apps-<student_id>.labs.sysdeseng.com] |
+Username: admin +
+Password: INSTRUCTOR WILL PROVIDE
+| Linux SSH private key
+| link:https://instructor.labs.sysdeseng.com/rhte.pem[https://instructor.labs.sysdeseng.com/rhte.pem]
+| Username: student +
+Password: INSTRUCTOR WILL PROVIDE
+| Windows PuTTY private key
+| link:https://instructor.labs.sysdeseng.com/rhte.ppk[https://instructor.labs.sysdeseng.com/rhte.ppk]
+| Username: student +
+Password: INSTRUCTOR WILL PROVIDE
+|======================
+
+== Overview
 
 In this lab, you will use Ansible Tower to add an additional application node to the OpenShift Container Platform cluster.
 
@@ -14,6 +43,7 @@ From the Ansible Tower:
 
 * Click on **INVENTORIES** in the top navigation pane
 * Click on **OpenShift** inventory
+* Click on the **Groups** button to view the groups within the inventory
 * Select the **OSEv3** group and review child groups and the instances within the _Hosts_ section
 
 The lists of instances in the OpenShift cluster can also be viewed from the OpenShift master using the OpenShift CLI:
@@ -34,7 +64,7 @@ The _0-Self-Configure_ job template executed earlier configured a set of templat
 
 Using a web browser from the student workstation machine, navigate to the Ansible Tower instance:
 
-link:https://tower-<student_id>.rhte.sysdeseng.com[https://tower-<student_id>.rhte.sysdeseng.com] 
+link:https://tower-<student_id>.labs.sysdeseng.com[https://tower-<student_id>.labs.sysdeseng.com] 
 
 If the web session has not been retained from a prior lab, login once again.
 
@@ -46,6 +76,8 @@ The workflow first creates a new AWS instance and once the instance has been cre
 
 The job will take a few minutes to complete. Monitor the status until the workflow job completes successfully by selecting **Details** on each job as with the initial workflow job used to install the cluster initially.
 
+TIP: Optionally explore the Playbooks that link:https://github.com/sabre1041/managing-ocp-install-beyond/blob/rhte/aws_add_node.yml[provision] and link:https://github.com/sabre1041/managing-ocp-install-beyond/blob/rhte/openshift_postinstall.yml[configure] this additional node.
+
 image::images/ansible-tower-scaleup-workflow-diagram.png[]
 
 == Validate the Expanded Cluster
@@ -54,7 +86,7 @@ Once the Tower job is completed, there are multiple methods in which to validate
 
 First, as an OpenShift cluster administrator, you can use the OpenShift command line interface from the OpenShift master to view the available nodes and their status.
 
-As the root user on the OpenShift master (_master-<student_id>.rhte.sysdeseng.com_), execute the following command to list the available nodes:
+As the root user on the OpenShift master (_master-<student_id>.labs.sysdeseng.com_), execute the following command to list the available nodes:
 
 .master$
 [source, bash]

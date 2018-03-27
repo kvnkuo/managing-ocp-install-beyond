@@ -1,14 +1,33 @@
-== Exploring the Environment
+= Lab 2 - Exploring Ansible Tower Environment
 
-With the installation of the OpenShift Container Platform started and an understanding of the environment as as whole, we are going to take time waiting for the installation to complete to explore the existing environment in further detail.
+== Connectivity Details for This Lab
+
+[options="header"]
+|======================
+| *Item* | *URL* | *Access*
+| Ansible Tower|
+link:https://tower-<student_id>.labs.sysdeseng.com[https://tower-<student_id>.labs.sysdeseng.com] |
+Username: <student_id> +
+Password: INSTRUCTOR WILL PROVIDE
+| Linux SSH private key
+| link:https://instructor.labs.sysdeseng.com/rhte.pem[https://instructor.labs.sysdeseng.com/rhte.pem]
+| Username: student +
+Password: INSTRUCTOR WILL PROVIDE
+| Windows PuTTY private key
+| link:https://instructor.labs.sysdeseng.com/rhte.ppk[https://instructor.labs.sysdeseng.com/rhte.ppk]
+| Username: student +
+Password: INSTRUCTOR WILL PROVIDE
+|======================
+
+== Overview
+
+With the installation of the OpenShift Container Platform started and an understanding of the environment as a whole, we are going to take time waiting for the installation to complete to explore the existing environment in further detail.
 
 === Exploring Ansible Tower
 
 Ansible is an agentless automation engine that automates cloud provisioning, configuration management, application deployment, intra-service orchestration, along with many other IT needs. Ansible is used to provision, install and deploy the OpenShift Container Platform to a cluster of instances.
 
-Ansible Tower provides the central management of Ansible workloads to enable complex workflows to manage environments big and small. The entire installation and management of the OpenShift Container Platform can be managed from a centralized Ansible Tower environment. In this lab, Ansible Tower is configured as a stand-alone VM on AWS.
-
-TIP: Use the SSH key referenced in lab0 to SSH to the Tower instance.
+Ansible Tower provides the central management of Ansible to enable complex workflows to efficiently manage environments big and small. The entire installation and management of the OpenShift Container Platform can be managed from a centralized Ansible Tower environment. In this lab, Ansible Tower is configured as a stand-alone VM on AWS.
 
 ==== Accessing Ansible Tower CLI
 
@@ -16,32 +35,43 @@ link:http://docs.ansible.com/ansible-tower/latest/html/towerapi/tower_cli.html[t
 
 First, connect to the Ansible Tower instance via SSH
 
+* For Linux
+
+Retrieve the `rhte.pem` key from the instructor server so that you can _SSH_ into the instances by accessing the password protected directory from the table above. Download the _rhte.pem_ file to your local machine and change the permissions of the file to 600.
+
 .workstation$
 [source, bash]
 ----
-ssh -i rhte.pem ec2-user@tower-<student_id>.rhte.sysdeseng.com
+chmod 600 rhte.pem
+ssh -i rhte.pem ec2-user@tower-<student_id>.labs.sysdeseng.com
 ----
+
+* For Windows
+
+Install putty on your Windows machine. link:http://www.putty.org/[http://www.putty.org/]
+
+Once installed, use the following instructions to SSH to the Tower instance link:http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/putty.html[http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/putty.html].
 
 Once logged into Ansible Tower, explore the CLI.
 
 .tower$
 [source, bash]
 ----
-sudo tower-cli --help
-sudo tower-cli version
-sudo tower-cli host list
-sudo tower-cli inventory list
-sudo tower-cli job list
-sudo tower-cli credential list
-sudo tower-cli job_template list
-sudo tower-cli group list
-sudo tower-cli workflow list
-sudo tower-cli project list
+tower-cli --help
+tower-cli version
+tower-cli host list
+tower-cli inventory list
+tower-cli job list
+tower-cli credential list
+tower-cli job_template list
+tower-cli group list
+tower-cli workflow list
+tower-cli project list
 ----
 
 ==== Accessing Ansible Tower Web Console
 
-From your workstation machine, open a web browser and navigate to link:https://tower-<student_id>.rhte.sysdeseng.com[https://tower-<student_id>.rhte.sysdeseng.com].
+From your workstation machine, open a web browser and navigate to link:https://tower-<student_id>.labs.sysdeseng.com[https://tower-<student_id>.labs.sysdeseng.com].
 
 Login with the provided credentials.
 
@@ -51,11 +81,12 @@ image::images/ansible-tower-overview.png[]
 
 ====== Job Templates
 
-First, let’s review the job template that was just executed to provision the OpenShift Container Platform. This workflow template consists of three chained job templates:
+First, let's review the workflow job template that was just executed to provision the OpenShift Container Platform. This workflow template consists of three chained job templates:
 
-* Deploy-1-Provision - Prepares the AWS environment by provisioning two instances, a master and a node
-* Deploy-2-Install - This step utilizes a dynamic inventory of AWS and then installs the OpenShift Container Platform on the instances provisioned previously
-* Deploy-3-Post-Install - Customizes the OpenShift cluster for the lab
+* 1-Deploy_OpenShift_on_AWS - Overall workflow job that ties the job templates together
+* Deploy-1-Provision - Job template that prepares the AWS environment by provisioning two instances, a master and a node
+* Deploy-2-Install - Job template that utilizes a dynamic inventory of AWS and then installs the OpenShift Container Platform on the instances provisioned previously
+* Deploy-3-Post-Install - Job template that customizes the OpenShift cluster for the lab
 
 Additional job templates relating to scaling the OpenShift environment and terminating the AWS instances have also been configured. A portion of these will be discussed in subsequent labs.
 
@@ -72,10 +103,10 @@ The configuration of each project can be viewed by selecting the pencil (edit) b
 
 ===== Inventory
 
-An link:http://docs.ansible.com/ansible-tower/latest/html/userguide/inventories.html[inventory] within Ansible Tower is similar to a standalone inventory file and contains a collection of hosts in which jobs may be launched. The inventories defined within Tower can be accessed by clicking on the **INVENTORIES** link on the menu bar. The _OpenShift_ inventory provides a top level container over two child groups:
+An link:http://docs.ansible.com/ansible-tower/latest/html/userguide/inventories.html[inventory] within Ansible Tower is similar to a standalone inventory file and contains a collection of hosts in which jobs may be launched. The inventories defined within Tower can be accessed by clicking on the **INVENTORIES** link on the menu bar. Then click on the _OpenShift_ inventory.  Finally, click on the **GROUPS** box which  provides a top level container over several child groups, notably:
 
-* AWS - link:docs.ansible.com/ansible/latest/intro_dynamic_inventory.html[Dynamic inventory] used to populate group and host metadata retrieved from AWS
-* OSEv3 - Group utilized by the OpenShift Instllation. The instances being utilized are organized into _masters_ and _nodes_ child groups based on their overall role and purpose. Also included are child groups with the naming convention `tag_lab_role_*` that is populated with hosts from the AWS dynamic inventory.
+* AWS - link:http://docs.ansible.com/ansible/latest/intro_dynamic_inventory.html[Dynamic inventory] used to populate group and host metadata retrieved from AWS
+* OSEv3 - Group utilized by the OpenShift Instllation. The instances being utilized are organized into _masters_ and _nodes_ child groups based on their overall role and purpose. Also included are child groups with the naming convention `tag_lab_role_*` that is populated with hosts from the AWS dynamic inventory. These tags are applied when the instances are created. To see how the tagging is accomplished view the task in the link:https://github.com/sabre1041/managing-ocp-install-beyond/blob/rhte/aws_create_hosts.yml#L16[provision playbook].
 
 image::images/ansible-tower-inventory.png[]
 
@@ -87,9 +118,9 @@ The most important component of the inventory for this usecase is the sets of in
 
 link:http://docs.ansible.com/ansible-tower/latest/html/userguide/credentials.html[Credentials] are a mechanism for authenticating against secure resources including target machines, inventory sources and projects leveraging version control systems. Every one of the previously explored areas makes use of a credential. Credentials are configured within the Ansible Tower settings and can be accessed by selecting the **Settings** icon (gear) on the menu bar. Once within the settings page, select the **Credentials** link. The following credentials have been defined:
 
-* AWS - Allows API access to AWS resources
+* AWS - Allows API access to link:http://docs.ansible.com/ansible-tower/latest/html/userguide/credentials.html#amazon-web-services[AWS] resources
 * RHTE SSH - Corresponds to the private key downloaded in lab0. Allows Tower to log in and configure instances running in AWS
-link:http://docs.ansible.com/ansible-tower/latest/html/userguide/credentials.html#amazon-web-services[AWS] platform
+ platform
 
 image::images/ansible-tower-credentials.png[]
 
@@ -112,4 +143,3 @@ This lab is concluded when the Ansible Tower job is completed successfully.
 ==== <<../lab1/lab1.adoc#lab1,Previous Lab: Lab 1 - Introduction / Setup>>
 ==== <<../lab3/lab3.adoc#lab3,Next Lab: Lab 3 - Verifying Installation of Red Hat OpenShift Container Platform Using Ansible Tower>>
 ==== <<../../README.adoc#lab1,Home>>
-

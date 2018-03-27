@@ -7,20 +7,13 @@
   tasks:
     - name: Provision AWS Instances for Scale Up
       ec2:
-        aws_access_key: "{{ec2_access_key}}"
-        aws_secret_key: "{{ec2_secret_key}}"
         key_name: "{{ aws_key_name }}"
         group: "{{ aws_sec_group }}"
         instance_type: "{{ item.type }}"
         image: "{{ item.image }}"
-        wait: true
+        wait: yes
         instance_tags:
-          Name: "{{ lab_name + '-' + item.name + '-' + student_id }}"
-          lab_name: "{{ lab_name }}"
-          lab_user: "{{ lab_user }}"
-          lab_role: "{{ item.meta.node_type }}"
-          student_id: "{{ student_id }}"
-          node_labels: "{{ item.meta.node_labels }}"
+          "{'Name': '{{ item.name }}-{{ student_id }}.{{ domain_name }}', 'lab_name': '{{ lab_name }}', 'lab_user': '{{ lab_user }}', 'lab_role': '{{ item.meta.node_type }}', 'student_id': '{{ student_id }}', 'node_labels': '{{ item.meta.node_labels | to_json }}', 'kubernetes.io/cluster/{{ student_id }}': '{{ student_id }}'}"
         vpc_subnet_id: "{{ aws_subnet_id }}"
         zone: "{{ aws_az_1 }}"
         assign_public_ip: yes
@@ -31,8 +24,9 @@
       register: instances_created
   
     - add_host:
-        name: "{{ item.instances.0.public_dns_name }}"
-        friendly_name: "{{ item.instances.0.tags.Name }}"
+        hostname: "{{ item.instances.0.tags.Name }}"
+        ansible_host: "{{ item.instances.0.public_ip }}"
+        public_dns_name: "{{ item.instances.0.public_dns_name }}"
         public_ip: "{{ item.instances.0.public_ip }}"
         groups: OSEv3
         student_id: "{{ item.instances.0.tags.student_id }}"
@@ -52,13 +46,21 @@
     - name: Register Host DNS
       route53:
         command: create
-        aws_access_key: "{{ec2_access_key}}"
-        aws_secret_key: "{{ec2_secret_key}}"
         zone: "{{ domain_name }}"
         type: A
         overwrite: True
         ttl: 60
         record: "{{ aws_scaleup_instances[item.0].name }}-{{ student_id }}.{{ domain_name }}"
         value: "{{ instances_created.results[item.0]['instances'][0]['public_ip'] }}"
+        wait: yes
       register: host_dns_entries
       with_indexed_items: "{{ aws_scaleup_instances }}"
+
+    - name: Wait for resolvable route53 hostname
+      local_action: command host {{ aws_scaleup_instances[item.0].name }}-{{ student_id }}.{{ domain_name }}
+      register: host_result
+      until: host_result.rc == 0
+      retries: 60
+      delay: 5
+      with_indexed_items: "{{ aws_scaleup_instances }}"
+...
